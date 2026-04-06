@@ -393,12 +393,80 @@
     line-height: 1.7;
     color: #333;
   }
+
+  /* ── DIAGNÓSTICO DETALHADO ── */
+  .diagnostico-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 5px solid;
+  }
+  .diagnostico-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .diagnostico-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .diagnostico-nivel {
+    font-size: 20px;
+    font-weight: 900;
+  }
+  .diagnostico-secao {
+    margin-bottom: 14px;
+  }
+  .diagnostico-secao h4 {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 8px;
+  }
+  .diagnostico-secao ul {
+    list-style: none;
+    padding: 0;
+  }
+  .diagnostico-secao li {
+    padding: 6px 0 6px 20px;
+    font-size: 12px;
+    line-height: 1.6;
+    position: relative;
+    color: #444;
+  }
+  .diagnostico-secao li:before {
+    content: "•";
+    position: absolute;
+    left: 6px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  .positivos li:before { color: #1A5C32; }
+  .atencao li:before { color: #E07B00; }
+  .acoes li:before { color: var(--cyan); }
+
+  .positivos li { background: #f0fdf4; border-left: 2px solid #1A5C32; padding-left: 18px; margin-bottom: 4px; border-radius: 4px; }
+  .atencao li { background: #fffbeb; border-left: 2px solid #E07B00; padding-left: 18px; margin-bottom: 4px; border-radius: 4px; }
+  .acoes li { background: #f0f9ff; border-left: 2px solid var(--cyan); padding-left: 18px; margin-bottom: 4px; border-radius: 4px; font-weight: 600; }
+
   .footer-msg {
     text-align: center;
     font-size: 11px;
     color: #999;
     margin-top: 30px;
     font-style: italic;
+  }
+  .footer-msg a {
+    color: #006B99;
+    text-decoration: none;
   }
 </style>
 </head>
@@ -413,13 +481,12 @@
   <div class="progress-step" id="progress1"></div>
   <div class="progress-step" id="progress2"></div>
   <div class="progress-step" id="progress3"></div>
+  <div class="progress-step" id="progress4"></div>
 </div>
 
 <div class="container">
 
-<!-- ════════════════════════════════════════════════════════════ -->
 <!-- ETAPA 1: CADASTRO -->
-<!-- ════════════════════════════════════════════════════════════ -->
 <div class="etapa show" id="etapa1">
   <div class="form-box">
     <h2>Bem-vindo ao Diagnóstico GCR</h2>
@@ -440,15 +507,13 @@
   </button>
 
   <p class="footer-msg">
-    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank" style="color:#006B99;text-decoration:none">@celsoeizak1</a> |
-    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank" style="color:#006B99;text-decoration:none">@antoniofogaca</a><br>
-    <a href="https://www.gestaocomresultado.com.br" target="_blank" style="color:#006B99;text-decoration:none">www.gestaocomresultado.com.br</a>
+    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank">@celsoeizak1</a> |
+    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank">@antoniofogaca</a><br>
+    <a href="https://www.gestaocomresultado.com.br" target="_blank">www.gestaocomresultado.com.br</a>
   </p>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════ -->
 <!-- ETAPA 2: AVALIAÇÃO -->
-<!-- ════════════════════════════════════════════════════════════ -->
 <div class="etapa" id="etapa2">
   <div class="form-box">
     <h2>Avalie cada área da sua empresa</h2>
@@ -462,15 +527,13 @@
   </button>
 
   <p class="footer-msg">
-    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank" style="color:#006B99;text-decoration:none">@celsoeizak1</a> |
-    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank" style="color:#006B99;text-decoration:none">@antoniofogaca</a><br>
-    <a href="https://www.gestaocomresultado.com.br" target="_blank" style="color:#006B99;text-decoration:none">www.gestaocomresultado.com.br</a>
+    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank">@celsoeizak1</a> |
+    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank">@antoniofogaca</a><br>
+    <a href="https://www.gestaocomresultado.com.br" target="_blank">www.gestaocomresultado.com.br</a>
   </p>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════ -->
 <!-- ETAPA 3: RESULTADO -->
-<!-- ════════════════════════════════════════════════════════════ -->
 <div class="etapa" id="etapa3">
   <div class="resultado-header">
     <h2>✅ SEU DIAGNÓSTICO DE MATURIDADE</h2>
@@ -494,22 +557,40 @@
 
   <div class="prox-passo-box" id="proxPassoBox"></div>
 
+  <button class="btn btn-primary" onclick="proximaEtapa(4)">
+    📄 VER DIAGNÓSTICO COMPLETO →
+  </button>
+
+  <p class="footer-msg">
+    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank">@celsoeizak1</a> |
+    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank">@antoniofogaca</a><br>
+    <a href="https://www.gestaocomresultado.com.br" target="_blank">www.gestaocomresultado.com.br</a>
+  </p>
+</div>
+
+<!-- ETAPA 4: DIAGNÓSTICO DETALHADO -->
+<div class="etapa" id="etapa4">
+  <div class="resultado-header">
+    <h2>📋 DIAGNÓSTICO DETALHADO POR ÁREA</h2>
+    <div class="nome-resultado" id="nomeResultado2"></div>
+  </div>
+
+  <div id="diagnosticoDetalhado"></div>
+
   <button class="btn btn-primary" onclick="compartilhar()">
     📤 COMPARTILHAR RESULTADO
   </button>
 
   <p class="footer-msg">
-    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank" style="color:#006B99;text-decoration:none">@celsoeizak1</a> |
-    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank" style="color:#006B99;text-decoration:none">@antoniofogaca</a><br>
-    <a href="https://www.gestaocomresultado.com.br" target="_blank" style="color:#006B99;text-decoration:none">www.gestaocomresultado.com.br</a>
+    Celso Eizak <a href="https://instagram.com/celsoeizak1" target="_blank">@celsoeizak1</a> |
+    Antônio Fogaça <a href="https://instagram.com/antoniofogaca" target="_blank">@antoniofogaca</a><br>
+    <a href="https://www.gestaocomresultado.com.br" target="_blank">www.gestaocomresultado.com.br</a>
   </p>
 </div>
 
 </div>
 
-<!-- ════════════════════════════════════════════════════════════ -->
 <!-- LOADING -->
-<!-- ════════════════════════════════════════════════════════════ -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-box">
     <div class="spinner"></div>
@@ -517,23 +598,17 @@
   </div>
 </div>
 
+<script src="dados-diagnostico.js"></script>
 <script>
-// ⚠️ COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxspJX-uaUUzi9gzkX5eKc9ql5WvjSm8hoKJw_Ho13ruZlVzEmqIr0kTTi1gm8B6JBL/exec';
 
 const AREAS = [
-  { id: "VENDAS",     nome: "Vendas",         cor: "#1A4A8F",
-    prox: "1 planilha de pipeline com 4–6 etapas. Registrar 100% das oportunidades. Reunião semanal de resultado por 30 dias." },
-  { id: "MARKETING",  nome: "Marketing",      cor: "#4A1A6B",
-    prox: "Definir ICP e proposta de valor em 1 página. Escolher 1 canal principal. Calendário de 90 dias com meta de leads." },
-  { id: "COMPRAS",    nome: "Compras",        cor: "#1A5C32",
-    prox: "Mapear 20 principais itens. Registrar 2 fornecedores por item. Implantar ponto de reposição simples." },
-  { id: "OPERAÇÕES",  nome: "Operações",      cor: "#1A5C5C",
-    prox: "Escolher 1 processo crítico. Documentar em checklist. Implantar reunião diária de 10 min. Medir retrabalho por 30 dias." },
-  { id: "RH",         nome: "RH / Pessoas",   cor: "#E07B00",
-    prox: "Definir 1 responsável por pessoas. Documentar funções dos 5 principais cargos. Medir turnover e absenteísmo por 3 meses." },
-  { id: "FINANCEIRO", nome: "Financeiro",     cor: "#8B1A1A",
-    prox: "Abrir conta PJ separada. Definir pró-labore fixo. Calcular custo real de 3 produtos/serviços. Fluxo de caixa semanal por 30 dias." },
+  { id: "VENDAS",     nome: "Vendas",         cor: "#1A4A8F" },
+  { id: "MARKETING",  nome: "Marketing",      cor: "#4A1A6B" },
+  { id: "COMPRAS",    nome: "Compras",        cor: "#1A5C32" },
+  { id: "OPERAÇÕES",  nome: "Operações",      cor: "#1A5C5C" },
+  { id: "RH",         nome: "RH / Pessoas",   cor: "#E07B00" },
+  { id: "FINANCEIRO", nome: "Financeiro",     cor: "#8B1A1A" },
 ];
 
 const DESCS = [
@@ -546,6 +621,7 @@ const DESCS = [
 const STATUS = ["INEXISTENTE","BÁSICO","ESTRUTURADO","EXCELENTE"];
 
 let dadosUsuario = {};
+let valoresAreas = [];
 
 // Gerar áreas dinamicamente
 const container = document.getElementById("areasContainer");
@@ -580,7 +656,6 @@ function updateSlider(id, val) {
 }
 
 function proximaEtapa(etapa) {
-  // Validar etapa 1
   if (etapa === 2) {
     const nome = document.getElementById("nomeInput").value.trim();
     const empresa = document.getElementById("empresaInput").value.trim();
@@ -602,16 +677,17 @@ function proximaEtapa(etapa) {
       return;
     }
 
-    // Salvar dados
     dadosUsuario = { nome, empresa, email };
   }
 
-  // Trocar etapas
+  if (etapa === 4) {
+    gerarDiagnosticoDetalhado();
+  }
+
   document.querySelectorAll('.etapa').forEach(e => e.classList.remove('show'));
   document.getElementById(`etapa${etapa}`).classList.add('show');
 
-  // Atualizar progress bar
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 4; i++) {
     if (i <= etapa) {
       document.getElementById(`progress${i}`).classList.add('active');
     } else {
@@ -619,39 +695,28 @@ function proximaEtapa(etapa) {
     }
   }
 
-  // Scroll ao topo
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function enviarDiagnostico() {
-  // Coletar valores
-  const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
+  valoresAreas = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
 
-  // Mostrar loading
   document.getElementById('loadingOverlay').classList.add('show');
 
-  // Enviar para Google Sheets
   try {
-    await enviarParaSheets(dadosUsuario.nome, dadosUsuario.empresa, dadosUsuario.email, valores);
+    await enviarParaSheets(dadosUsuario.nome, dadosUsuario.empresa, dadosUsuario.email, valoresAreas);
     await new Promise(resolve => setTimeout(resolve, 1500));
   } catch (erro) {
     console.error('Erro ao salvar:', erro);
   }
 
-  // Esconder loading
   document.getElementById('loadingOverlay').classList.remove('show');
 
-  // Mostrar resultado
-  mostrarResultado(dadosUsuario.nome, dadosUsuario.empresa, valores);
+  mostrarResultado(dadosUsuario.nome, dadosUsuario.empresa, valoresAreas);
   proximaEtapa(3);
 }
 
 async function enviarParaSheets(nome, empresa, email, valores) {
-  if (SCRIPT_URL === 'COLE_A_URL_DO_SCRIPT_AQUI') {
-    console.warn('⚠️ URL do Apps Script não configurada');
-    return;
-  }
-
   const dados = {
     timestamp: new Date().toISOString(),
     nome, empresa, email,
@@ -673,8 +738,8 @@ async function enviarParaSheets(nome, empresa, email, valores) {
 
 function mostrarResultado(nome, empresa, valores) {
   document.getElementById("nomeResultado").textContent = `${nome} - ${empresa}`;
+  document.getElementById("nomeResultado2").textContent = `${nome} - ${empresa}`;
 
-  // Radar chart
   const ctx = document.getElementById("radarChart").getContext("2d");
   new Chart(ctx, {
     type: "radar",
@@ -712,7 +777,6 @@ function mostrarResultado(nome, empresa, valores) {
     }
   });
 
-  // Tabela
   const tbody = document.getElementById("tabelaCorpo");
   tbody.innerHTML = "";
   AREAS.forEach((a, i) => {
@@ -724,20 +788,61 @@ function mostrarResultado(nome, empresa, valores) {
     </tr>`;
   });
 
-  // Próximo passo
   const minVal = Math.min(...valores);
   const pior = AREAS.find((a, i) => valores[i] === minVal);
+  const proxPasso = DIAGNOSTICOS[pior.id][minVal].acoes[0];
   document.getElementById("proxPassoBox").innerHTML =
-    `<strong>▸ FOCO IMEDIATO — ${pior.nome.toUpperCase()}</strong><p>${pior.prox}</p>`;
+    `<strong>▸ FOCO IMEDIATO — ${pior.nome.toUpperCase()}</strong><p>${proxPasso}</p>`;
+}
+
+function gerarDiagnosticoDetalhado() {
+  const container = document.getElementById("diagnosticoDetalhado");
+  container.innerHTML = "";
+
+  AREAS.forEach((area, i) => {
+    const nivel = valoresAreas[i];
+    const diag = DIAGNOSTICOS[area.id][nivel];
+
+    const card = `
+      <div class="diagnostico-card" style="border-left-color: ${area.cor}">
+        <div class="diagnostico-header">
+          <span class="diagnostico-titulo" style="color: ${area.cor}">${area.nome.toUpperCase()}</span>
+          <span class="diagnostico-nivel" style="color: ${area.cor}">NÍVEL ${nivel}</span>
+        </div>
+
+        <div class="diagnostico-secao positivos">
+          <h4>✓ PONTOS POSITIVOS</h4>
+          <ul>
+            ${diag.positivos.map(p => `<li>${p}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="diagnostico-secao atencao">
+          <h4>⚠ PONTOS DE ATENÇÃO</h4>
+          <ul>
+            ${diag.atencao.map(a => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="diagnostico-secao acoes">
+          <h4>→ AÇÕES DE INTERVENÇÃO (próximos 30-90 dias)</h4>
+          <ul>
+            ${diag.acoes.map(a => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML += card;
+  });
 }
 
 function compartilhar() {
   const { nome } = dadosUsuario;
-  const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
   let texto = `📊 *Diagnóstico GCR — ${nome}*\n\n`;
   AREAS.forEach((a, i) => {
-    const barra = "█".repeat(valores[i]) + "░".repeat(3 - valores[i]);
-    texto += `${barra} ${a.nome}: Nível ${valores[i]} — ${STATUS[valores[i]]}\n`;
+    const barra = "█".repeat(valoresAreas[i]) + "░".repeat(3 - valoresAreas[i]);
+    texto += `${barra} ${a.nome}: Nível ${valoresAreas[i]} — ${STATUS[valoresAreas[i]]}\n`;
   });
   texto += `\n_Gestão com Resultado · Celso Eizak · Antônio Fogaça_`;
 
