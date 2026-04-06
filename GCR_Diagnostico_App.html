@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GCR · Diagnóstico de Maturidade</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --dark:   #05091A;
+    --cyan:   #006B99;
+    --verde:  #1A5C32;
+    --azul:   #1A4A8F;
+    --teal:   #1A5C5C;
+    --roxo:   #4A1A6B;
+    --laranja:#E07B00;
+    --verm:   #8B1A1A;
+    --branco: #FFFFFF;
+    --cinza:  #F5F7FA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Arial', sans-serif;
+    background: var(--cinza);
+    color: #222;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--dark);
+    padding: 20px 20px 16px;
+    text-align: center;
+  }
+  .header h1 {
+    color: var(--branco);
+    font-size: 18px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  .header p {
+    color: var(--cyan);
+    font-size: 12px;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ── LEGENDA ── */
+  .legenda {
+    background: var(--cyan);
+    padding: 10px 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .legenda span {
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .leg-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  /* ── FORM ── */
+  .form-container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  .nome-field {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .nome-field label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .nome-field input {
+    width: 100%;
+    border: 2px solid #E0E6EE;
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .nome-field input:focus { border-color: var(--cyan); }
+
+  .area-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 16px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border-left: 4px solid var(--cyan);
+  }
+  .area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .area-nome {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .nivel-badge {
+    font-size: 22px;
+    font-weight: 900;
+    min-width: 38px;
+    text-align: right;
+    transition: color .2s;
+  }
+
+  .slider-wrap { position: relative; padding-bottom: 6px; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #E0E6EE;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--cyan);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,107,153,.35);
+    transition: background .2s;
+  }
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+  .slider-labels span {
+    font-size: 10px;
+    color: #999;
+  }
+
+  .nivel-desc {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-style: italic;
+    background: var(--cinza);
+    color: #555;
+    min-height: 36px;
+    transition: all .2s;
+  }
+
+  /* Cores por área */
+  .area-VENDAS    { border-left-color: #1A4A8F; }
+  .area-MARKETING { border-left-color: #4A1A6B; }
+  .area-COMPRAS   { border-left-color: #1A5C32; }
+  .area-OPERAÇÕES { border-left-color: #1A5C5C; }
+  .area-RH        { border-left-color: #E07B00; }
+  .area-FINANCEIRO{ border-left-color: #8B1A1A; }
+
+  .cor-VENDAS    { color: #1A4A8F; }
+  .cor-MARKETING { color: #4A1A6B; }
+  .cor-COMPRAS   { color: #1A5C32; }
+  .cor-OPERAÇÕES { color: #1A5C5C; }
+  .cor-RH        { color: #E07B00; }
+  .cor-FINANCEIRO{ color: #8B1A1A; }
+
+  /* ── BTN ── */
+  .btn-gerar {
+    width: 100%;
+    padding: 16px;
+    background: var(--dark);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background .2s;
+    text-transform: uppercase;
+  }
+  .btn-gerar:active { background: var(--cyan); }
+
+  /* ── RESULTADO ── */
+  .resultado {
+    display: none;
+    background: white;
+    border-radius: 12px;
+    padding: 24px 16px 28px;
+    margin-top: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+  .resultado.show { display: block; }
+  .resultado h2 {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .resultado .nome-resultado {
+    text-align: center;
+    font-size: 13px;
+    color: var(--cyan);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .chart-wrap {
+    max-width: 320px;
+    margin: 0 auto 20px;
+  }
+  .tabela-result {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .tabela-result th {
+    background: var(--dark);
+    color: white;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: .5px;
+  }
+  .tabela-result td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #EEE;
+  }
+  .tabela-result tr:nth-child(even) td { background: #F8FAFB; }
+  .nivel-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    color: white;
+  }
+  .prox-passo {
+    background: #F0F8FF;
+    border-left: 3px solid var(--cyan);
+    padding: 10px 14px;
+    margin-top: 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+    color: #444;
+  }
+  .prox-passo strong { color: var(--cyan); display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  .btn-compartilhar {
+    width: 100%;
+    padding: 14px;
+    background: var(--cyan);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 16px;
+    letter-spacing: .5px;
+  }
+  .footer-msg {
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    margin-top: 20px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GESTÃO COM RESULTADO</h1>
+  <p>Diagnóstico de Maturidade por Área · Jornada 0→3</p>
+</div>
+
+<div class="legenda">
+  <span class="leg-badge">0 Inexistente</span>
+  <span class="leg-badge">1 Básico</span>
+  <span class="leg-badge">2 Estruturado</span>
+  <span class="leg-badge">3 Excelente</span>
+</div>
+
+<div class="form-container">
+
+  <div class="nome-field">
+    <label>Seu nome</label>
+    <input type="text" id="nomeInput" placeholder="Nome e empresa (opcional)" autocomplete="name">
+  </div>
+
+  <!-- Áreas geradas por JS -->
+  <div id="areasContainer"></div>
+
+  <button class="btn-gerar" onclick="gerarRadar()">▶ VER MEU DIAGNÓSTICO</button>
+
+  <!-- Resultado -->
+  <div class="resultado" id="resultado">
+    <h2>SEU DIAGNÓSTICO DE MATURIDADE</h2>
+    <div class="nome-resultado" id="nomeResultado"></div>
+    <div class="chart-wrap">
+      <canvas id="radarChart"></canvas>
+    </div>
+    <table class="tabela-result">
+      <thead>
+        <tr><th>ÁREA</th><th>NÍVEL</th><th>STATUS</th></tr>
+      </thead>
+      <tbody id="tabelaCorpo"></tbody>
+    </table>
+    <div class="prox-passo" id="proxPasso"></div>
+    <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar resultado</button>
+  </div>
+
+  <p class="footer-msg">"Nada disso é sorte. É método." · Celso Eizak · Antônio Fogaça</p>
+</div>
+
+<script>
+const AREAS = [
+  { id: "VENDAS",     nome: "Vendas",         cor: "#1A4A8F", bg: "#D6E4F7",
+    prox: "1 planilha de pipeline com 4–6 etapas. Registrar 100% das oportunidades. Reunião semanal de resultado por 30 dias." },
+  { id: "MARKETING",  nome: "Marketing",      cor: "#4A1A6B", bg: "#E8D6F7",
+    prox: "Definir ICP e proposta de valor em 1 página. Escolher 1 canal principal. Calendário de 90 dias com meta de leads." },
+  { id: "COMPRAS",    nome: "Compras",        cor: "#1A5C32", bg: "#D6F0E0",
+    prox: "Mapear 20 principais itens. Registrar 2 fornecedores por item. Implantar ponto de reposição simples." },
+  { id: "OPERAÇÕES",  nome: "Operações",      cor: "#1A5C5C", bg: "#D6EDED",
+    prox: "Escolher 1 processo crítico. Documentar em checklist. Implantar reunião diária de 10 min. Medir retrabalho por 30 dias." },
+  { id: "RH",         nome: "RH / Pessoas",   cor: "#E07B00", bg: "#FFF3CD",
+    prox: "Definir 1 responsável por pessoas. Documentar funções dos 5 principais cargos. Medir turnover e absenteísmo por 3 meses." },
+  { id: "FINANCEIRO", nome: "Financeiro",     cor: "#8B1A1A", bg: "#FAD6D6",
+    prox: "Abrir conta PJ separada. Definir pró-labore fixo. Calcular custo real de 3 produtos/serviços. Fluxo de caixa semanal por 30 dias." },
+];
+
+const DESCS = [
+  "Não existe. Improviso total.",
+  "Existe algo. Frágil, depende de pessoa.",
+  "Documentado, seguido, medido.",
+  "Kaizen contínuo. Alta performance.",
+];
+
+const STATUS = ["INEXISTENTE","BÁSICO","ESTRUTURADO","EXCELENTE"];
+
+// Gera cards das áreas
+const container = document.getElementById("areasContainer");
+AREAS.forEach(a => {
+  container.innerHTML += `
+  <div class="area-card area-${a.id}" id="card-${a.id}">
+    <div class="area-header">
+      <span class="area-nome cor-${a.id}">${a.nome.toUpperCase()}</span>
+      <span class="nivel-badge cor-${a.id}" id="badge-${a.id}">0</span>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" min="0" max="3" step="1" value="0"
+        id="slider-${a.id}"
+        oninput="updateSlider('${a.id}', this.value)"
+        style="background: linear-gradient(to right, ${a.cor} 0%, ${a.cor} 0%, #E0E6EE 0%)">
+      <div class="slider-labels">
+        <span>0</span><span>1</span><span>2</span><span>3</span>
+      </div>
+    </div>
+    <div class="nivel-desc" id="desc-${a.id}">${DESCS[0]}</div>
+  </div>`;
+});
+
+function updateSlider(id, val) {
+  val = parseInt(val);
+  const pct = (val / 3) * 100;
+  const area = AREAS.find(a => a.id === id);
+  const slider = document.getElementById(`slider-${id}`);
+  slider.style.background = `linear-gradient(to right, ${area.cor} ${pct}%, ${area.cor} ${pct}%, #E0E6EE ${pct}%)`;
+  document.getElementById(`badge-${id}`).textContent = val;
+  document.getElementById(`desc-${id}`).textContent = DESCS[val];
+}
+
+let chartInstance = null;
+
+function gerarRadar() {
+  const nome = document.getElementById("nomeInput").value.trim() || "Participante";
+  const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
+  const labels  = AREAS.map(a => a.nome);
+  const cores   = AREAS.map(a => a.cor);
+
+  document.getElementById("nomeResultado").textContent = nome;
+  document.getElementById("resultado").classList.add("show");
+
+  // Scroll para resultado
+  setTimeout(() => document.getElementById("resultado").scrollIntoView({ behavior: "smooth" }), 100);
+
+  // Radar chart
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById("radarChart").getContext("2d");
+  chartInstance = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: nome,
+          data: valores,
+          backgroundColor: "rgba(0,107,153,0.18)",
+          borderColor: "#006B99",
+          borderWidth: 2.5,
+          pointBackgroundColor: cores,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+        },
+        {
+          label: "Meta (3)",
+          data: [3,3,3,3,3,3],
+          backgroundColor: "rgba(200,200,200,0.05)",
+          borderColor: "rgba(180,180,180,0.4)",
+          borderWidth: 1.5,
+          borderDash: [5,5],
+          pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 3,
+          ticks: { stepSize: 1, font: { size: 10 }, color: "#888" },
+          grid: { color: "rgba(0,0,0,0.08)" },
+          pointLabels: { font: { size: 11, weight: "bold" }, color: "#333" }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` Nível ${ctx.raw} — ${DESCS[ctx.raw] || ""}`
+          }
+        }
+      }
+    }
+  });
+
+  // Tabela
+  const tbody = document.getElementById("tabelaCorpo");
+  tbody.innerHTML = "";
+  AREAS.forEach((a, i) => {
+    const v = valores[i];
+    const bg = a.bg;
+    tbody.innerHTML += `
+      <tr>
+        <td><strong style="color:${a.cor}">${a.nome}</strong></td>
+        <td><span class="nivel-pill" style="background:${a.cor}">${v}</span></td>
+        <td style="color:${a.cor};font-weight:600;font-size:11px">${STATUS[v]}</td>
+      </tr>`;
+  });
+
+  // Pior área → próximo passo
+  const minVal = Math.min(...valores);
+  const piores = AREAS.filter((a, i) => valores[i] === minVal);
+  const pior = piores[0];
+  document.getElementById("proxPasso").innerHTML =
+    `<strong>▸ FOCO IMEDIATO — ${pior.nome.toUpperCase()}</strong>${pior.prox}`;
+}
+
+function compartilhar() {
+  const nome = document.getElementById("nomeInput").value.trim() || "Participante";
+  const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
+  let texto = `📊 *Diagnóstico GCR — ${nome}*\n\n`;
+  AREAS.forEach((a, i) => {
+    const barra = "█".repeat(valores[i]) + "░".repeat(3 - valores[i]);
+    texto += `${barra} ${a.nome}: Nível ${valores[i]} — ${STATUS[valores[i]]}\n`;
+  });
+  texto += `\n_Gestão com Resultado · Celso Eizak · Antônio Fogaça_`;
+
+  if (navigator.share) {
+    navigator.share({ title: "Diagnóstico GCR", text: texto });
+  } else {
+    navigator.clipboard.writeText(texto).then(() => alert("Resultado copiado! Cole no WhatsApp."));
+  }
+}
+</script>
+</body>
+</html>
