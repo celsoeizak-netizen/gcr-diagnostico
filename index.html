@@ -72,14 +72,14 @@
     padding: 20px 16px 40px;
   }
 
-  .nome-field {
+  .info-fields {
     background: white;
     border-radius: 10px;
     padding: 16px;
     margin-bottom: 20px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }
-  .nome-field label {
+  .info-fields label {
     font-size: 11px;
     font-weight: 700;
     color: #888;
@@ -87,8 +87,10 @@
     text-transform: uppercase;
     display: block;
     margin-bottom: 8px;
+    margin-top: 12px;
   }
-  .nome-field input {
+  .info-fields label:first-of-type { margin-top: 0; }
+  .info-fields input {
     width: 100%;
     border: 2px solid #E0E6EE;
     border-radius: 7px;
@@ -98,7 +100,10 @@
     outline: none;
     transition: border-color .2s;
   }
-  .nome-field input:focus { border-color: var(--cyan); }
+  .info-fields input:focus { border-color: var(--cyan); }
+  .info-fields input[type="email"] {
+    text-transform: lowercase;
+  }
 
   .area-card {
     background: white;
@@ -201,6 +206,20 @@
     text-transform: uppercase;
   }
   .btn-gerar:active { background: var(--cyan); }
+  .btn-gerar:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    color: var(--cyan);
+    font-weight: 600;
+  }
+  .loading.show { display: block; }
 
   /* ── RESULTADO ── */
   .resultado {
@@ -287,6 +306,18 @@
     margin-top: 20px;
     font-style: italic;
   }
+  .sucesso-msg {
+    background: #D4EDDA;
+    border: 1px solid #C3E6CB;
+    color: #155724;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+  }
+  .sucesso-msg.show { display: block; }
 </style>
 </head>
 <body>
@@ -305,15 +336,29 @@
 
 <div class="form-container">
 
-  <div class="nome-field">
-    <label>Seu nome</label>
-    <input type="text" id="nomeInput" placeholder="Nome e empresa (opcional)" autocomplete="name">
+  <div class="info-fields">
+    <label for="nomeInput">Seu nome completo</label>
+    <input type="text" id="nomeInput" placeholder="Ex: João Silva" autocomplete="name" required>
+
+    <label for="empresaInput">Nome da empresa</label>
+    <input type="text" id="empresaInput" placeholder="Ex: Empresa ABC Ltda" required>
+
+    <label for="emailInput">Seu e-mail</label>
+    <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email" required>
   </div>
 
   <!-- Áreas geradas por JS -->
   <div id="areasContainer"></div>
 
-  <button class="btn-gerar" onclick="gerarRadar()">▶ VER MEU DIAGNÓSTICO</button>
+  <button class="btn-gerar" id="btnGerar" onclick="gerarRadar()">▶ VER MEU DIAGNÓSTICO</button>
+
+  <div class="loading" id="loading">
+    ⏳ Salvando seus dados...
+  </div>
+
+  <div class="sucesso-msg" id="sucessoMsg">
+    ✅ Dados salvos com sucesso! Você receberá mais informações por e-mail.
+  </div>
 
   <!-- Resultado -->
   <div class="resultado" id="resultado">
@@ -336,6 +381,9 @@
 </div>
 
 <script>
+// ⚠️ COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxspJX-uaUUzi9gzkX5eKc9ql5WvjSm8hoKJw_Ho13ruZlVzEmqIr0kTTi1gm8B6JBL/exec';
+
 const AREAS = [
   { id: "VENDAS",     nome: "Vendas",         cor: "#1A4A8F", bg: "#D6E4F7",
     prox: "1 planilha de pipeline com 4–6 etapas. Registrar 100% das oportunidades. Reunião semanal de resultado por 30 dias." },
@@ -394,13 +442,54 @@ function updateSlider(id, val) {
 
 let chartInstance = null;
 
-function gerarRadar() {
-  const nome = document.getElementById("nomeInput").value.trim() || "Participante";
+async function gerarRadar() {
+  // Validar campos
+  const nome = document.getElementById("nomeInput").value.trim();
+  const empresa = document.getElementById("empresaInput").value.trim();
+  const email = document.getElementById("emailInput").value.trim();
+
+  if (!nome) {
+    alert('Por favor, preencha seu nome completo.');
+    document.getElementById("nomeInput").focus();
+    return;
+  }
+  if (!empresa) {
+    alert('Por favor, preencha o nome da empresa.');
+    document.getElementById("empresaInput").focus();
+    return;
+  }
+  if (!email || !email.includes('@')) {
+    alert('Por favor, preencha um e-mail válido.');
+    document.getElementById("emailInput").focus();
+    return;
+  }
+
   const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
   const labels  = AREAS.map(a => a.nome);
   const cores   = AREAS.map(a => a.cor);
 
-  document.getElementById("nomeResultado").textContent = nome;
+  // Desabilitar botão e mostrar loading
+  const btn = document.getElementById('btnGerar');
+  btn.disabled = true;
+  btn.textContent = '⏳ SALVANDO...';
+  document.getElementById('loading').classList.add('show');
+
+  // Enviar dados para Google Sheets
+  try {
+    await enviarParaSheets(nome, empresa, email, valores);
+    document.getElementById('sucessoMsg').classList.add('show');
+  } catch (erro) {
+    console.error('Erro ao salvar:', erro);
+    alert('⚠️ Não foi possível salvar os dados. Mas você pode ver seu diagnóstico abaixo!');
+  }
+
+  // Reabilitar botão
+  btn.disabled = false;
+  btn.textContent = '▶ VER MEU DIAGNÓSTICO';
+  document.getElementById('loading').classList.remove('show');
+
+  // Mostrar resultado
+  document.getElementById("nomeResultado").textContent = `${nome} - ${empresa}`;
   document.getElementById("resultado").classList.add("show");
 
   // Scroll para resultado
@@ -461,7 +550,6 @@ function gerarRadar() {
   tbody.innerHTML = "";
   AREAS.forEach((a, i) => {
     const v = valores[i];
-    const bg = a.bg;
     tbody.innerHTML += `
       <tr>
         <td><strong style="color:${a.cor}">${a.nome}</strong></td>
@@ -478,8 +566,37 @@ function gerarRadar() {
     `<strong>▸ FOCO IMEDIATO — ${pior.nome.toUpperCase()}</strong>${pior.prox}`;
 }
 
+async function enviarParaSheets(nome, empresa, email, valores) {
+  if (SCRIPT_URL === 'COLE_A_URL_DO_SCRIPT_AQUI') {
+    console.warn('URL do Google Apps Script não configurada');
+    return;
+  }
+
+  const dados = {
+    timestamp: new Date().toISOString(),
+    nome: nome,
+    empresa: empresa,
+    email: email,
+    vendas: valores[0],
+    marketing: valores[1],
+    compras: valores[2],
+    operacoes: valores[3],
+    rh: valores[4],
+    financeiro: valores[5]
+  };
+
+  const response = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+
+  return response;
+}
+
 function compartilhar() {
-  const nome = document.getElementById("nomeInput").value.trim() || "Participante";
+  const nome = document.getElementById("nomeInput").value.trim();
   const valores = AREAS.map(a => parseInt(document.getElementById(`slider-${a.id}`).value));
   let texto = `📊 *Diagnóstico GCR — ${nome}*\n\n`;
   AREAS.forEach((a, i) => {
