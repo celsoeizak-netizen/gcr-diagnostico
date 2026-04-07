@@ -507,7 +507,7 @@
     <label for="emailInput" class="required">Seu e-mail</label>
     <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email" required pattern="[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{3,6}" title="Digite um e-mail válido com extensão mínima de 3 letras (ex: nome@empresa.com)">
 
-    <label for="whatsappInput" class="required">WhatsApp (com DDD)</label>
+    <label for="whatsappInput" class="required">WhatsApp (com DD)</label>
     <input type="tel" id="whatsappInput" placeholder="(11) 99999-9999" autocomplete="tel" maxlength="15">
   </div>
 
@@ -724,7 +724,7 @@ function proximaEtapa(etapa) {
       return;
     }
     if (!validarWhatsApp(whatsapp)) {
-      alert('⚠️ Por favor, preencha um WhatsApp válido com DDD.\nExemplo: (11) 99999-9999');
+      alert('⚠️ Por favor, preencha um WhatsApp válido com DD.\nExemplo: (11) 99999-9999');
       document.getElementById("whatsappInput").focus();
       return;
     }
