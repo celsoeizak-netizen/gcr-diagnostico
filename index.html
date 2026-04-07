@@ -32,6 +32,12 @@
     padding: 20px 20px 16px;
     text-align: center;
   }
+  .header-logo {
+    max-width: 280px;
+    height: auto;
+    margin: 0 auto 12px;
+    display: block;
+  }
   .header h1 {
     color: var(--branco);
     font-size: 18px;
@@ -473,7 +479,7 @@
 <body>
 
 <div class="header">
-  <h1>GESTÃO COM RESULTADO</h1>
+  <img src="Logo_GCR.png" alt="Gestão com Resultado" class="header-logo">
   <p>Diagnóstico de Maturidade por Área · Jornada 0→3</p>
 </div>
 
@@ -499,7 +505,10 @@
     <input type="text" id="empresaInput" placeholder="Ex: Empresa ABC Ltda">
 
     <label for="emailInput" class="required">Seu e-mail</label>
-    <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email">
+    <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email" required pattern="[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{3,6}" title="Digite um e-mail válido com extensão mínima de 3 letras (ex: nome@empresa.com)">
+
+    <label for="whatsappInput" class="required">WhatsApp (com DDD)</label>
+    <input type="tel" id="whatsappInput" placeholder="(11) 99999-9999" autocomplete="tel" maxlength="15">
   </div>
 
   <button class="btn btn-primary" onclick="proximaEtapa(2)">
@@ -578,7 +587,7 @@
   <div id="diagnosticoDetalhado"></div>
 
   <button class="btn btn-primary" onclick="compartilhar()">
-    📤 COMPARTILHAR RESULTADO
+    📱 COMPARTILHAR VIA WHATSAPP
   </button>
 
   <p class="footer-msg">
@@ -645,6 +654,11 @@ AREAS.forEach(a => {
   </div>`;
 });
 
+// Aplicar máscara de WhatsApp
+document.getElementById('whatsappInput').addEventListener('input', function(e) {
+  e.target.value = aplicarMascaraWhatsApp(e.target.value);
+});
+
 function updateSlider(id, val) {
   val = parseInt(val);
   const pct = (val / 3) * 100;
@@ -655,11 +669,44 @@ function updateSlider(id, val) {
   document.getElementById(`desc-${id}`).textContent = DESCS[val];
 }
 
+function validarEmail(email) {
+  if (!email || email.trim() === '') return false;
+  email = email.trim();
+
+  // Regex rigoroso: usuario@dominio.extensao
+  // Exige: mínimo 3 caracteres antes do @, domínio com pelo menos 3 caracteres, extensão com 3-6 caracteres (.com, .org, .net, etc)
+  const regex = /^[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{3,6}$/;
+
+  // Verificações adicionais
+  if (!regex.test(email)) return false;
+  if (email.includes('..')) return false; // não permite .. consecutivos
+  if (email.startsWith('.') || email.startsWith('-')) return false;
+
+  return true;
+}
+
+function validarWhatsApp(whatsapp) {
+  const numeros = whatsapp.replace(/\D/g, '');
+  return numeros.length === 11 && (numeros[2] === '9');
+}
+
+function aplicarMascaraWhatsApp(valor) {
+  const numeros = valor.replace(/\D/g, '');
+  if (numeros.length <= 2) {
+    return `(${numeros}`;
+  } else if (numeros.length <= 7) {
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  } else {
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7, 11)}`;
+  }
+}
+
 function proximaEtapa(etapa) {
   if (etapa === 2) {
     const nome = document.getElementById("nomeInput").value.trim();
     const empresa = document.getElementById("empresaInput").value.trim();
     const email = document.getElementById("emailInput").value.trim();
+    const whatsapp = document.getElementById("whatsappInput").value.trim();
 
     if (!nome) {
       alert('⚠️ Por favor, preencha seu nome completo.');
@@ -671,13 +718,18 @@ function proximaEtapa(etapa) {
       document.getElementById("empresaInput").focus();
       return;
     }
-    if (!email || !email.includes('@')) {
-      alert('⚠️ Por favor, preencha um e-mail válido.');
+    if (!validarEmail(email)) {
+      alert('⚠️ Por favor, preencha um e-mail válido.\nExemplo: seunome@empresa.com.br');
       document.getElementById("emailInput").focus();
       return;
     }
+    if (!validarWhatsApp(whatsapp)) {
+      alert('⚠️ Por favor, preencha um WhatsApp válido com DDD.\nExemplo: (11) 99999-9999');
+      document.getElementById("whatsappInput").focus();
+      return;
+    }
 
-    dadosUsuario = { nome, empresa, email };
+    dadosUsuario = { nome, empresa, email, whatsapp };
   }
 
   if (etapa === 4) {
@@ -704,7 +756,7 @@ async function enviarDiagnostico() {
   document.getElementById('loadingOverlay').classList.add('show');
 
   try {
-    await enviarParaSheets(dadosUsuario.nome, dadosUsuario.empresa, dadosUsuario.email, valoresAreas);
+    await enviarParaSheets(dadosUsuario.nome, dadosUsuario.empresa, dadosUsuario.email, dadosUsuario.whatsapp, valoresAreas);
     await new Promise(resolve => setTimeout(resolve, 1500));
   } catch (erro) {
     console.error('Erro ao salvar:', erro);
@@ -716,10 +768,10 @@ async function enviarDiagnostico() {
   proximaEtapa(3);
 }
 
-async function enviarParaSheets(nome, empresa, email, valores) {
+async function enviarParaSheets(nome, empresa, email, whatsapp, valores) {
   const dados = {
     timestamp: new Date().toISOString(),
-    nome, empresa, email,
+    nome, empresa, email, whatsapp,
     vendas: valores[0],
     marketing: valores[1],
     compras: valores[2],
@@ -844,13 +896,13 @@ function compartilhar() {
     const barra = "█".repeat(valoresAreas[i]) + "░".repeat(3 - valoresAreas[i]);
     texto += `${barra} ${a.nome}: Nível ${valoresAreas[i]} — ${STATUS[valoresAreas[i]]}\n`;
   });
-  texto += `\n_Gestão com Resultado · Celso Eizak · Antônio Fogaça_`;
+  texto += `\n_Gestão com Resultado · Celso Eizak · Antônio Fogaça_\n`;
+  texto += `\nhttps://www.gestaocomresultado.com.br`;
 
-  if (navigator.share) {
-    navigator.share({ title: "Diagnóstico GCR", text: texto });
-  } else {
-    navigator.clipboard.writeText(texto).then(() => alert("✅ Resultado copiado para área de transferência!"));
-  }
+  // Compartilhar via WhatsApp
+  const textoEncoded = encodeURIComponent(texto);
+  const whatsappURL = `https://wa.me/?text=${textoEncoded}`;
+  window.open(whatsappURL, '_blank');
 }
 </script>
 </body>
