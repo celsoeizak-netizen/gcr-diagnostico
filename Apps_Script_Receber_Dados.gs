@@ -32,7 +32,7 @@ function doPost(e) {
       aba = planilha.insertSheet('Respostas');
 
       // Criar cabeçalhos
-      aba.getRange('A1:M1').setValues([[
+      aba.getRange('A1:N1').setValues([[
         'Data/Hora',
         'Nome',
         'Empresa',
@@ -45,16 +45,17 @@ function doPost(e) {
         'RH/Pessoas',
         'Financeiro',
         'Média',
-        'Status'
+        'Status',
+        'Próximo Passo'
       ]]);
 
       // Formatar cabeçalhos
-      aba.getRange('A1:M1').setFontWeight('bold')
+      aba.getRange('A1:N1').setFontWeight('bold')
         .setBackground('#05091A')
         .setFontColor('#FFFFFF');
 
       aba.setFrozenRows(1);
-      aba.autoResizeColumns(1, 13);
+      aba.autoResizeColumns(1, 14);
     }
 
     // Preparar dados para inserir
@@ -74,7 +75,7 @@ function doPost(e) {
     else if (media < 2.5) status = 'INTERMEDIÁRIO';
     else status = 'AVANÇADO';
 
-    // Inserir nova linha
+    // Inserir nova linha (com coluna Próximo Passo vazia)
     aba.appendRow([
       timestamp,
       dados.nome,
@@ -88,7 +89,8 @@ function doPost(e) {
       rh,
       financeiro,
       media,
-      status
+      status,
+      '' // Próximo Passo (será preenchido depois)
     ]);
 
     // Criar ou atualizar aba de médias
@@ -111,32 +113,6 @@ function doPost(e) {
 function salvarProximoPasso(dados) {
   try {
     const planilha = SpreadsheetApp.getActiveSpreadsheet();
-    let aba = planilha.getSheetByName('Intenção de Compra');
-
-    // Se a aba não existir, criar
-    if (!aba) {
-      aba = planilha.insertSheet('Intenção de Compra');
-
-      // Criar cabeçalhos
-      aba.getRange('A1:F1').setValues([[
-        'Data/Hora',
-        'Nome',
-        'Empresa',
-        'E-mail',
-        'Próximo Passo',
-        'Status Lead'
-      ]]);
-
-      // Formatar cabeçalhos
-      aba.getRange('A1:F1').setFontWeight('bold')
-        .setBackground('#05091A')
-        .setFontColor('#FFFFFF');
-
-      aba.setFrozenRows(1);
-      aba.autoResizeColumns(1, 6);
-    }
-
-    // Preparar dados
     const timestamp = new Date(dados.timestamp);
     const proximoPasso = dados.proximoPasso;
 
@@ -150,8 +126,52 @@ function salvarProximoPasso(dados) {
       statusLead = '❄️ FRIO';
     }
 
+    // 1. ATUALIZAR ABA "RESPOSTAS" - Encontrar última linha com este email
+    const abaRespostas = planilha.getSheetByName('Respostas');
+    if (abaRespostas) {
+      const ultimaLinha = abaRespostas.getLastRow();
+      const emailColuna = 4; // Coluna D (E-mail)
+      const proximoPassoColuna = 14; // Coluna N (Próximo Passo)
+
+      // Procurar de baixo para cima (última ocorrência do email)
+      for (let i = ultimaLinha; i >= 2; i--) {
+        const emailNaLinha = abaRespostas.getRange(i, emailColuna).getValue();
+        if (emailNaLinha === dados.email) {
+          // Encontrou! Atualizar coluna Próximo Passo
+          abaRespostas.getRange(i, proximoPassoColuna).setValue(proximoPasso + ' ' + statusLead);
+          break;
+        }
+      }
+    }
+
+    // 2. SALVAR NA ABA "INTENÇÃO DE COMPRA"
+    let abaIntencao = planilha.getSheetByName('Intenção de Compra');
+
+    // Se a aba não existir, criar
+    if (!abaIntencao) {
+      abaIntencao = planilha.insertSheet('Intenção de Compra');
+
+      // Criar cabeçalhos
+      abaIntencao.getRange('A1:F1').setValues([[
+        'Data/Hora',
+        'Nome',
+        'Empresa',
+        'E-mail',
+        'Próximo Passo',
+        'Status Lead'
+      ]]);
+
+      // Formatar cabeçalhos
+      abaIntencao.getRange('A1:F1').setFontWeight('bold')
+        .setBackground('#05091A')
+        .setFontColor('#FFFFFF');
+
+      abaIntencao.setFrozenRows(1);
+      abaIntencao.autoResizeColumns(1, 6);
+    }
+
     // Inserir nova linha
-    aba.appendRow([
+    abaIntencao.appendRow([
       timestamp,
       dados.nome,
       dados.empresa,
