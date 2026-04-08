@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GCR · Diagnóstico de Maturidade</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --dark:   #05091A;
@@ -586,8 +587,12 @@
 
   <div id="diagnosticoDetalhado"></div>
 
-  <button class="btn btn-primary" onclick="compartilhar()">
+  <button class="btn btn-primary" onclick="compartilhar()" style="margin-bottom: 12px;">
     📱 COMPARTILHAR VIA WHATSAPP
+  </button>
+
+  <button class="btn btn-primary" onclick="baixarPDF()" style="background: #1A5C32;">
+    📄 BAIXAR PDF COMPLETO
   </button>
 
   <p class="footer-msg">
@@ -904,6 +909,170 @@ function compartilhar() {
   const textoEncoded = encodeURIComponent(texto);
   const whatsappURL = `https://wa.me/?text=${textoEncoded}`;
   window.open(whatsappURL, '_blank');
+}
+
+function baixarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const { nome, empresa } = dadosUsuario;
+  let y = 20;
+
+  // Título
+  doc.setFontSize(20);
+  doc.setTextColor(5, 9, 26);
+  doc.text('DIAGNÓSTICO GCR', 105, y, { align: 'center' });
+  y += 8;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 107, 153);
+  doc.text('Gestão com Resultado - Diagnóstico de Maturidade', 105, y, { align: 'center' });
+  y += 15;
+
+  // Informações do participante
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Nome: ${nome}`, 20, y);
+  y += 7;
+  doc.text(`Empresa: ${empresa}`, 20, y);
+  y += 10;
+
+  // Linha separadora
+  doc.setDrawColor(200, 200, 200);
+  doc.line(20, y, 190, y);
+  y += 10;
+
+  // Resultados por área
+  doc.setFontSize(14);
+  doc.setTextColor(5, 9, 26);
+  doc.text('RESULTADOS POR ÁREA', 20, y);
+  y += 8;
+
+  doc.setFontSize(10);
+  AREAS.forEach((area, i) => {
+    const nivel = valoresAreas[i];
+    const status = STATUS[nivel];
+
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${area.nome}:`, 20, y);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Nível ${nivel} - ${status}`, 80, y);
+    doc.setFont(undefined, 'normal');
+    y += 6;
+  });
+
+  y += 5;
+
+  // Diagnóstico detalhado por área
+  AREAS.forEach((area, i) => {
+    const nivel = valoresAreas[i];
+    const diag = DIAGNOSTICOS[area.id][nivel];
+
+    // Verifica se precisa de nova página
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Título da área
+    doc.setFontSize(12);
+    doc.setTextColor(5, 9, 26);
+    doc.setFont(undefined, 'bold');
+    doc.text(`${area.nome.toUpperCase()} - NÍVEL ${nivel}`, 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+
+    // Pontos positivos
+    doc.setFontSize(9);
+    doc.setTextColor(26, 92, 50);
+    doc.setFont(undefined, 'bold');
+    doc.text('✓ PONTOS POSITIVOS', 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 5;
+
+    doc.setTextColor(0, 0, 0);
+    diag.positivos.forEach(p => {
+      const linhas = doc.splitTextToSize(`• ${p}`, 170);
+      linhas.forEach(linha => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(linha, 22, y);
+        y += 4;
+      });
+    });
+    y += 3;
+
+    // Pontos de atenção
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(9);
+    doc.setTextColor(224, 123, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text('⚠ PONTOS DE ATENÇÃO', 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 5;
+
+    doc.setTextColor(0, 0, 0);
+    diag.atencao.forEach(a => {
+      const linhas = doc.splitTextToSize(`• ${a}`, 170);
+      linhas.forEach(linha => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(linha, 22, y);
+        y += 4;
+      });
+    });
+    y += 3;
+
+    // Ações de intervenção
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(9);
+    doc.setTextColor(0, 107, 153);
+    doc.setFont(undefined, 'bold');
+    doc.text('→ AÇÕES DE INTERVENÇÃO (próximos 30-90 dias)', 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 5;
+
+    doc.setTextColor(0, 0, 0);
+    diag.acoes.forEach(a => {
+      const linhas = doc.splitTextToSize(`• ${a}`, 170);
+      linhas.forEach(linha => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(linha, 22, y);
+        y += 4;
+      });
+    });
+
+    y += 8;
+  });
+
+  // Rodapé em todas as páginas
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Gestão com Resultado | Celso Eizak | Antônio Fogaça', 105, 285, { align: 'center' });
+    doc.text('www.gestaocomresultado.com', 105, 290, { align: 'center' });
+  }
+
+  // Salvar PDF
+  const nomeArquivo = `Diagnostico_GCR_${nome.replace(/\s+/g, '_')}.pdf`;
+  doc.save(nomeArquivo);
 }
 </script>
 </body>
