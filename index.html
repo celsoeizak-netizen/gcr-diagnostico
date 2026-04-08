@@ -267,9 +267,16 @@
     transform: translateY(0);
   }
   .btn-primary:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
+    background: #ddd !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    opacity: 0.5;
+    box-shadow: none !important;
+  }
+  .btn-primary:disabled:hover {
+    background: #ddd !important;
+    transform: none !important;
   }
 
   /* ── LOADING ── */
@@ -627,6 +634,12 @@
     </label>
   </div>
 
+  <div id="avisoSelecionar" style="text-align: center; padding: 12px; background: #FFF3CD; border-radius: 8px; margin-bottom: 12px; border: 1px solid #FFC107;">
+    <span style="font-size: 13px; color: #856404; font-weight: 600;">
+      ⬆️ Selecione uma opção acima para liberar os botões
+    </span>
+  </div>
+
   <button class="btn btn-primary" id="btnWhatsApp" onclick="compartilhar()" style="margin-bottom: 12px;" disabled>
     📱 COMPARTILHAR VIA WHATSAPP
   </button>
@@ -960,6 +973,9 @@ function habilitarBotoes() {
   if (proximoPasso) {
     // Salvar resposta
     dadosUsuario.proximoPasso = proximoPasso.value;
+
+    // Esconder aviso
+    document.getElementById('avisoSelecionar').style.display = 'none';
 
     // Habilitar botões
     document.getElementById('btnWhatsApp').disabled = false;
