@@ -505,7 +505,7 @@
     <input type="text" id="empresaInput" placeholder="Ex: Empresa ABC Ltda">
 
     <label for="emailInput" class="required">Seu e-mail</label>
-    <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email" required pattern="[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{3,6}" title="Digite um e-mail válido com extensão mínima de 3 letras (ex: nome@empresa.com)">
+    <input type="email" id="emailInput" placeholder="exemplo@email.com" autocomplete="email" required pattern="[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{2,}(\.[a-zA-Z]{2,})?" title="Digite um e-mail válido (ex: nome@empresa.com ou nome@empresa.com.br)">
 
     <label for="whatsappInput" class="required">WhatsApp (com DD)</label>
     <input type="tel" id="whatsappInput" placeholder="(11) 99999-9999" autocomplete="tel" maxlength="15">
@@ -673,9 +673,9 @@ function validarEmail(email) {
   if (!email || email.trim() === '') return false;
   email = email.trim();
 
-  // Regex rigoroso: usuario@dominio.extensao
-  // Exige: mínimo 3 caracteres antes do @, domínio com pelo menos 3 caracteres, extensão com 3-6 caracteres (.com, .org, .net, etc)
-  const regex = /^[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{3,6}$/;
+  // Regex rigoroso: usuario@dominio.extensao (aceita .com, .com.br, .org.br, etc)
+  // Exige: mínimo 3 caracteres antes do @, domínio com pelo menos 3 caracteres, extensão simples ou composta
+  const regex = /^[a-zA-Z0-9._-]{3,}@[a-zA-Z0-9-]{3,}\.[a-zA-Z]{2,}(\.[a-zA-Z]{2,})?$/;
 
   // Verificações adicionais
   if (!regex.test(email)) return false;
