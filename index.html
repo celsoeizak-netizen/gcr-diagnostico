@@ -475,6 +475,21 @@
     color: #006B99;
     text-decoration: none;
   }
+
+  /* Radio buttons próximo passo */
+  .proximo-passo-box label:hover {
+    border-color: var(--cyan) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,107,153,0.15);
+  }
+  .proximo-passo-box input[type="radio"]:checked + span {
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  .proximo-passo-box label:has(input:checked) {
+    border-color: var(--cyan) !important;
+    background: #F0F9FF !important;
+  }
 </style>
 </head>
 <body>
@@ -587,11 +602,36 @@
 
   <div id="diagnosticoDetalhado"></div>
 
-  <button class="btn btn-primary" onclick="compartilhar()" style="margin-bottom: 12px;">
+  <!-- PRÓXIMO PASSO -->
+  <div class="proximo-passo-box" style="margin-bottom: 20px; background: linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%); border: 2px solid #E07B00; padding: 20px; border-radius: 12px;">
+    <strong style="display: block; color: #E07B00; font-size: 14px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+      💡 PRÓXIMO PASSO
+    </strong>
+    <p style="font-size: 13px; color: #333; margin-bottom: 14px; font-weight: 600;">
+      Para implementar estas melhorias, você pretende:
+    </p>
+
+    <label style="display: block; margin-bottom: 10px; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #E0E6EE; transition: all 0.2s;">
+      <input type="radio" name="proximoPasso" value="Contratar consultoria especializada" onchange="habilitarBotoes()" style="margin-right: 10px;">
+      <span style="font-size: 13px; color: #333;">Contratar consultoria especializada</span>
+    </label>
+
+    <label style="display: block; margin-bottom: 10px; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #E0E6EE; transition: all 0.2s;">
+      <input type="radio" name="proximoPasso" value="Buscar orientação para implementar sozinho" onchange="habilitarBotoes()" style="margin-right: 10px;">
+      <span style="font-size: 13px; color: #333;">Buscar orientação para implementar sozinho</span>
+    </label>
+
+    <label style="display: block; margin-bottom: 0; cursor: pointer; padding: 12px; background: white; border-radius: 8px; border: 2px solid #E0E6EE; transition: all 0.2s;">
+      <input type="radio" name="proximoPasso" value="Vou continuar como está" onchange="habilitarBotoes()" style="margin-right: 10px;">
+      <span style="font-size: 13px; color: #333;">Vou continuar como está</span>
+    </label>
+  </div>
+
+  <button class="btn btn-primary" id="btnWhatsApp" onclick="compartilhar()" style="margin-bottom: 12px;" disabled>
     📱 COMPARTILHAR VIA WHATSAPP
   </button>
 
-  <button class="btn btn-primary" onclick="baixarPDF()" style="background: #1A5C32;">
+  <button class="btn btn-primary" id="btnPDF" onclick="baixarPDF()" style="background: #1A5C32;" disabled>
     📄 BAIXAR PDF COMPLETO
   </button>
 
@@ -793,6 +833,26 @@ async function enviarParaSheets(nome, empresa, email, whatsapp, valores) {
   });
 }
 
+async function enviarProximoPassoParaSheets(proximoPasso) {
+  const { nome, empresa, email } = dadosUsuario;
+
+  const dados = {
+    acao: 'proximoPasso',
+    timestamp: new Date().toISOString(),
+    nome,
+    empresa,
+    email,
+    proximoPasso
+  };
+
+  await fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+}
+
 function mostrarResultado(nome, empresa, valores) {
   document.getElementById("nomeResultado").textContent = `${nome} - ${empresa}`;
   document.getElementById("nomeResultado2").textContent = `${nome} - ${empresa}`;
@@ -892,6 +952,22 @@ function gerarDiagnosticoDetalhado() {
 
     container.innerHTML += card;
   });
+}
+
+function habilitarBotoes() {
+  const proximoPasso = document.querySelector('input[name="proximoPasso"]:checked');
+
+  if (proximoPasso) {
+    // Salvar resposta
+    dadosUsuario.proximoPasso = proximoPasso.value;
+
+    // Habilitar botões
+    document.getElementById('btnWhatsApp').disabled = false;
+    document.getElementById('btnPDF').disabled = false;
+
+    // Enviar atualização para planilha com próximo passo
+    enviarProximoPassoParaSheets(proximoPasso.value);
+  }
 }
 
 function compartilhar() {

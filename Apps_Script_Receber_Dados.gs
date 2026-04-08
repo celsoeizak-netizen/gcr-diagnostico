@@ -18,6 +18,11 @@ function doPost(e) {
     // Pegar dados do POST
     const dados = JSON.parse(e.postData.contents);
 
+    // Se for ação de próximo passo
+    if (dados.acao === 'proximoPasso') {
+      return salvarProximoPasso(dados);
+    }
+
     // Abrir a planilha (use o nome da sua planilha)
     const planilha = SpreadsheetApp.getActiveSpreadsheet();
     let aba = planilha.getSheetByName('Respostas');
@@ -96,6 +101,72 @@ function doPost(e) {
 
   } catch (erro) {
     Logger.log('Erro: ' + erro.toString());
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: erro.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function salvarProximoPasso(dados) {
+  try {
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    let aba = planilha.getSheetByName('Intenção de Compra');
+
+    // Se a aba não existir, criar
+    if (!aba) {
+      aba = planilha.insertSheet('Intenção de Compra');
+
+      // Criar cabeçalhos
+      aba.getRange('A1:F1').setValues([[
+        'Data/Hora',
+        'Nome',
+        'Empresa',
+        'E-mail',
+        'Próximo Passo',
+        'Status Lead'
+      ]]);
+
+      // Formatar cabeçalhos
+      aba.getRange('A1:F1').setFontWeight('bold')
+        .setBackground('#05091A')
+        .setFontColor('#FFFFFF');
+
+      aba.setFrozenRows(1);
+      aba.autoResizeColumns(1, 6);
+    }
+
+    // Preparar dados
+    const timestamp = new Date(dados.timestamp);
+    const proximoPasso = dados.proximoPasso;
+
+    // Definir status do lead
+    let statusLead = '';
+    if (proximoPasso === 'Contratar consultoria especializada') {
+      statusLead = '🔥 QUENTE';
+    } else if (proximoPasso === 'Buscar orientação para implementar sozinho') {
+      statusLead = '🟡 MORNO';
+    } else if (proximoPasso === 'Vou continuar como está') {
+      statusLead = '❄️ FRIO';
+    }
+
+    // Inserir nova linha
+    aba.appendRow([
+      timestamp,
+      dados.nome,
+      dados.empresa,
+      dados.email,
+      proximoPasso,
+      statusLead
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Próximo passo salvo com sucesso!'
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (erro) {
+    Logger.log('Erro ao salvar próximo passo: ' + erro.toString());
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: erro.toString()
