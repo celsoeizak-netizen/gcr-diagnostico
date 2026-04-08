@@ -922,8 +922,6 @@ function baixarPDF() {
   img.src = 'Logo_GCR.png';
 
   img.onload = function() {
-    let y = 15;
-
     // Header com fundo escuro
     doc.setFillColor(5, 9, 26);
     doc.rect(0, 0, 210, 35, 'F');
@@ -931,196 +929,218 @@ function baixarPDF() {
     // Logo
     doc.addImage(img, 'PNG', 55, 8, 100, 20);
 
-    y = 45;
-
-    // Box de informações do participante
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(15, y, 180, 20, 3, 3, 'F');
-
-    doc.setFontSize(11);
-    doc.setTextColor(5, 9, 26);
-    doc.setFont(undefined, 'bold');
-    doc.text('PARTICIPANTE', 20, y + 7);
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(10);
-    doc.text(`${nome} | ${empresa}`, 20, y + 14);
-
-    y += 28;
-
-    // Título Resultados
-    doc.setFillColor(0, 107, 153);
-    doc.roundedRect(15, y, 180, 8, 2, 2, 'F');
-    doc.setFontSize(11);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont(undefined, 'bold');
-    doc.text('RESULTADOS POR ÁREA', 20, y + 6);
-
-    y += 12;
-
-    // Tabela de resultados
-    doc.setFont(undefined, 'normal');
-    AREAS.forEach((area, i) => {
-      const nivel = valoresAreas[i];
-      const status = STATUS[nivel];
-
-      // Cor da área
-      const rgb = hexToRgb(area.cor);
-
-      // Box da área
-      doc.setFillColor(250, 250, 250);
-      doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
-
-      // Barra lateral colorida
-      doc.setFillColor(rgb.r, rgb.g, rgb.b);
-      doc.rect(15, y, 3, 10, 'F');
-
-      // Texto
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text(area.nome, 22, y + 6.5);
-
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text(`Nível ${nivel}`, 120, y + 6.5);
-      doc.setFont(undefined, 'normal');
-      doc.text(`${status}`, 145, y + 6.5);
-
-      y += 12;
-    });
-
-    y += 5;
-
-    // Diagnóstico detalhado por área
-    AREAS.forEach((area, i) => {
-      const nivel = valoresAreas[i];
-      const diag = DIAGNOSTICOS[area.id][nivel];
-      const rgb = hexToRgb(area.cor);
-
-      // Nova página se necessário
-      if (y > 240) {
-        doc.addPage();
-        y = 20;
-      }
-
-      // Header da área
-      doc.setFillColor(rgb.r, rgb.g, rgb.b);
-      doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
-      doc.setFontSize(12);
-      doc.setTextColor(255, 255, 255);
-      doc.setFont(undefined, 'bold');
-      doc.text(`${area.nome.toUpperCase()} - NÍVEL ${nivel}`, 20, y + 7);
-
-      y += 14;
-
-      // Pontos positivos
-      doc.setFillColor(240, 253, 244);
-      const alturaPositivos = Math.max(20, diag.positivos.length * 6 + 8);
-      doc.roundedRect(15, y, 180, alturaPositivos, 2, 2, 'F');
-      doc.setDrawColor(26, 92, 50);
-      doc.setLineWidth(0.5);
-      doc.line(15, y, 15, y + alturaPositivos);
-
-      doc.setFontSize(8);
-      doc.setTextColor(26, 92, 50);
-      doc.setFont(undefined, 'bold');
-      doc.text('✓ PONTOS POSITIVOS', 20, y + 5);
-      doc.setFont(undefined, 'normal');
-
-      let yTemp = y + 10;
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
-      diag.positivos.forEach(p => {
-        const linhas = doc.splitTextToSize(`• ${p}`, 170);
-        linhas.forEach(linha => {
-          doc.text(linha, 22, yTemp);
-          yTemp += 4;
-        });
-      });
-
-      y += alturaPositivos + 3;
-
-      // Pontos de atenção
-      if (y > 240) {
-        doc.addPage();
-        y = 20;
-      }
-
-      doc.setFillColor(255, 251, 235);
-      const alturaAtencao = Math.max(20, diag.atencao.length * 6 + 8);
-      doc.roundedRect(15, y, 180, alturaAtencao, 2, 2, 'F');
-      doc.setDrawColor(224, 123, 0);
-      doc.line(15, y, 15, y + alturaAtencao);
-
-      doc.setFontSize(8);
-      doc.setTextColor(224, 123, 0);
-      doc.setFont(undefined, 'bold');
-      doc.text('⚠ PONTOS DE ATENÇÃO', 20, y + 5);
-      doc.setFont(undefined, 'normal');
-
-      yTemp = y + 10;
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
-      diag.atencao.forEach(a => {
-        const linhas = doc.splitTextToSize(`• ${a}`, 170);
-        linhas.forEach(linha => {
-          doc.text(linha, 22, yTemp);
-          yTemp += 4;
-        });
-      });
-
-      y += alturaAtencao + 3;
-
-      // Ações de intervenção
-      if (y > 240) {
-        doc.addPage();
-        y = 20;
-      }
-
-      doc.setFillColor(240, 249, 255);
-      const alturaAcoes = Math.max(20, diag.acoes.length * 6 + 8);
-      doc.roundedRect(15, y, 180, alturaAcoes, 2, 2, 'F');
-      doc.setDrawColor(0, 107, 153);
-      doc.line(15, y, 15, y + alturaAcoes);
-
-      doc.setFontSize(8);
-      doc.setTextColor(0, 107, 153);
-      doc.setFont(undefined, 'bold');
-      doc.text('→ AÇÕES DE INTERVENÇÃO (próximos 30-90 dias)', 20, y + 5);
-      doc.setFont(undefined, 'normal');
-
-      yTemp = y + 10;
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
-      diag.acoes.forEach(a => {
-        const linhas = doc.splitTextToSize(`• ${a}`, 170);
-        linhas.forEach(linha => {
-          doc.text(linha, 22, yTemp);
-          yTemp += 4;
-        });
-      });
-
-      y += alturaAcoes + 6;
-    });
-
-    // Rodapé em todas as páginas
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.setTextColor(150, 150, 150);
-      doc.text('Gestão com Resultado | @celsoeizak1 | @antoniofogaca', 105, 285, { align: 'center' });
-      doc.text('www.gestaocomresultado.com', 105, 290, { align: 'center' });
-    }
-
-    // Salvar PDF
-    const nomeArquivo = `Diagnostico_GCR_${nome.replace(/\s+/g, '_')}.pdf`;
-    doc.save(nomeArquivo);
+    gerarConteudoPDF(doc, nome, empresa, 45);
   };
 
   img.onerror = function() {
-    alert('Erro ao carregar logo. Gerando PDF sem logo...');
-    // Gerar sem logo em caso de erro
+    // Se erro ao carregar logo, gera PDF sem logo
+    gerarPDFSemLogo(doc, nome, empresa);
   };
+}
+
+function gerarPDFSemLogo(doc, nome, empresa) {
+  let y = 15;
+
+  // Header com fundo escuro
+  doc.setFillColor(5, 9, 26);
+  doc.rect(0, 0, 210, 35, 'F');
+
+  // Título (sem logo)
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont(undefined, 'bold');
+  doc.text('GESTÃO COM RESULTADO', 105, 20, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('Diagnóstico de Maturidade', 105, 28, { align: 'center' });
+
+  gerarConteudoPDF(doc, nome, empresa, 45);
+}
+
+function gerarConteudoPDF(doc, nome, empresa, yInicial) {
+  let y = yInicial;
+
+  // Box de informações do participante
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(15, y, 180, 20, 3, 3, 'F');
+
+  doc.setFontSize(11);
+  doc.setTextColor(5, 9, 26);
+  doc.setFont(undefined, 'bold');
+  doc.text('PARTICIPANTE', 20, y + 7);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
+  doc.text(`${nome} | ${empresa}`, 20, y + 14);
+
+  y += 28;
+
+  // Título Resultados
+  doc.setFillColor(0, 107, 153);
+  doc.roundedRect(15, y, 180, 8, 2, 2, 'F');
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont(undefined, 'bold');
+  doc.text('RESULTADOS POR ÁREA', 20, y + 6);
+
+  y += 12;
+
+  // Tabela de resultados
+  doc.setFont(undefined, 'normal');
+  AREAS.forEach((area, i) => {
+    const nivel = valoresAreas[i];
+    const status = STATUS[nivel];
+
+    // Cor da área
+    const rgb = hexToRgb(area.cor);
+
+    // Box da área
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+
+    // Barra lateral colorida
+    doc.setFillColor(rgb.r, rgb.g, rgb.b);
+    doc.rect(15, y, 3, 10, 'F');
+
+    // Texto
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(area.nome, 22, y + 6.5);
+
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(rgb.r, rgb.g, rgb.b);
+    doc.text(`Nível ${nivel}`, 120, y + 6.5);
+    doc.setFont(undefined, 'normal');
+    doc.text(`${status}`, 145, y + 6.5);
+
+    y += 12;
+  });
+
+  y += 5;
+
+  // Diagnóstico detalhado por área
+  AREAS.forEach((area, i) => {
+    const nivel = valoresAreas[i];
+    const diag = DIAGNOSTICOS[area.id][nivel];
+    const rgb = hexToRgb(area.cor);
+
+    // Nova página se necessário
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Header da área
+    doc.setFillColor(rgb.r, rgb.g, rgb.b);
+    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text(`${area.nome.toUpperCase()} - NÍVEL ${nivel}`, 20, y + 7);
+
+    y += 14;
+
+    // Pontos positivos
+    doc.setFillColor(240, 253, 244);
+    const alturaPositivos = Math.max(20, diag.positivos.length * 6 + 8);
+    doc.roundedRect(15, y, 180, alturaPositivos, 2, 2, 'F');
+    doc.setDrawColor(26, 92, 50);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, 15, y + alturaPositivos);
+
+    doc.setFontSize(8);
+    doc.setTextColor(26, 92, 50);
+    doc.setFont(undefined, 'bold');
+    doc.text('✓ PONTOS POSITIVOS', 20, y + 5);
+    doc.setFont(undefined, 'normal');
+
+    let yTemp = y + 10;
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    diag.positivos.forEach(p => {
+      const linhas = doc.splitTextToSize(`• ${p}`, 170);
+      linhas.forEach(linha => {
+        doc.text(linha, 22, yTemp);
+        yTemp += 4;
+      });
+    });
+
+    y += alturaPositivos + 3;
+
+    // Pontos de atenção
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFillColor(255, 251, 235);
+    const alturaAtencao = Math.max(20, diag.atencao.length * 6 + 8);
+    doc.roundedRect(15, y, 180, alturaAtencao, 2, 2, 'F');
+    doc.setDrawColor(224, 123, 0);
+    doc.line(15, y, 15, y + alturaAtencao);
+
+    doc.setFontSize(8);
+    doc.setTextColor(224, 123, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text('⚠ PONTOS DE ATENÇÃO', 20, y + 5);
+    doc.setFont(undefined, 'normal');
+
+    yTemp = y + 10;
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    diag.atencao.forEach(a => {
+      const linhas = doc.splitTextToSize(`• ${a}`, 170);
+      linhas.forEach(linha => {
+        doc.text(linha, 22, yTemp);
+        yTemp += 4;
+      });
+    });
+
+    y += alturaAtencao + 3;
+
+    // Ações de intervenção
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFillColor(240, 249, 255);
+    const alturaAcoes = Math.max(20, diag.acoes.length * 6 + 8);
+    doc.roundedRect(15, y, 180, alturaAcoes, 2, 2, 'F');
+    doc.setDrawColor(0, 107, 153);
+    doc.line(15, y, 15, y + alturaAcoes);
+
+    doc.setFontSize(8);
+    doc.setTextColor(0, 107, 153);
+    doc.setFont(undefined, 'bold');
+    doc.text('→ AÇÕES DE INTERVENÇÃO (próximos 30-90 dias)', 20, y + 5);
+    doc.setFont(undefined, 'normal');
+
+    yTemp = y + 10;
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    diag.acoes.forEach(a => {
+      const linhas = doc.splitTextToSize(`• ${a}`, 170);
+      linhas.forEach(linha => {
+        doc.text(linha, 22, yTemp);
+        yTemp += 4;
+      });
+    });
+
+    y += alturaAcoes + 6;
+  });
+
+  // Rodapé em todas as páginas
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Gestão com Resultado | @celsoeizak1 | @antoniofogaca', 105, 285, { align: 'center' });
+    doc.text('www.gestaocomresultado.com', 105, 290, { align: 'center' });
+  }
+
+  // Salvar PDF
+  const nomeArquivo = `Diagnostico_GCR_${nome.replace(/\s+/g, '_')}.pdf`;
+  doc.save(nomeArquivo);
 }
 
 // Função auxiliar para converter hex para RGB
