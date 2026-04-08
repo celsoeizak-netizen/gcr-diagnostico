@@ -792,6 +792,18 @@ function proximaEtapa(etapa) {
 
   if (etapa === 4) {
     gerarDiagnosticoDetalhado();
+
+    // Garantir que botões comecem desabilitados
+    document.getElementById('btnWhatsApp').disabled = true;
+    document.getElementById('btnPDF').disabled = true;
+
+    // Mostrar aviso
+    document.getElementById('avisoSelecionar').style.display = 'block';
+
+    // Desmarcar qualquer seleção anterior
+    document.querySelectorAll('input[name="proximoPasso"]').forEach(input => {
+      input.checked = false;
+    });
   }
 
   document.querySelectorAll('.etapa').forEach(e => e.classList.remove('show'));
